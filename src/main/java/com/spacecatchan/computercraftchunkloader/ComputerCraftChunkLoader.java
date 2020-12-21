@@ -6,9 +6,10 @@ import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.Logger;
+import dan200.computercraft.api.turtle.*;
 
-@Mod(modid = ExampleMod.MODID, name = ExampleMod.NAME, version = ExampleMod.VERSION)
-public class ExampleMod
+@Mod(modid = ComputerCraftChunkLoader.MODID, name = ComputerCraftChunkLoader.NAME, version = ComputerCraftChunkLoader.VERSION)
+public class ComputerCraftChunkLoader
 {
     public static final String MODID = "computercraftchunkloader";
     public static final String NAME = "ComputercraftChunkloader";
@@ -27,5 +28,6 @@ public class ExampleMod
     {
         // some example code
         logger.info("DIRT BLOCK >> {}", Blocks.DIRT.getRegistryName());
+        
     }
 }

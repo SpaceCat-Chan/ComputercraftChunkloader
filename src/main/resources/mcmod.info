@@ -11,6 +11,6 @@
   "credits": "a",
   "logoFile": "",
   "screenshots": [],
-  "dependencies": []
+  "dependencies": ["computercraft"]
 }
 ]
