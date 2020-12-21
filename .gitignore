@@ -1,3 +1,6 @@
 java_home.sh
 build
 .gradle
+.settings
+.vscode
+run
