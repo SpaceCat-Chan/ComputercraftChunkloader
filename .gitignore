@@ -4,3 +4,8 @@ build
 .settings
 .vscode
 run
+ComputercraftChunkloader.iml
+ComputercraftChunkloader.iws
+ComputercraftChunkloader.ipr
+.idea
+
