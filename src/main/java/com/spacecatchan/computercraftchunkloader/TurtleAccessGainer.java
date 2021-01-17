@@ -2,6 +2,7 @@ package com.spacecatchan.computercraftchunkloader;
 
 import dan200.computercraft.api.turtle.ITurtleAccess;
 import dan200.computercraft.shared.turtle.blocks.ITurtleTile;
+import dan200.computercraft.shared.turtle.core.TurtleBrain;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
