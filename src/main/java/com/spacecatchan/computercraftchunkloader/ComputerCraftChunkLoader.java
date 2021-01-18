@@ -32,7 +32,7 @@ public class ComputerCraftChunkLoader
 {
     public static final String MODID = "computercraftchunkloader";
     public static final String NAME = "ComputercraftChunkloader";
-    public static final String VERSION = "0.1";
+    public static final String VERSION = "0.2";
 
     public static Logger logger;
 
@@ -190,11 +190,13 @@ class ComputerHandler {
     {
         ITurtleAccess turtle = TurtleAccessGainer.findAccess(turtle_loc, dimension);
         Pos last_position = m_turtles.get(turtle);
-        ChunkLoader.UnloadChunk(last_position.pos, last_position.world);
-        for(EnumFacing direction : EnumFacing.HORIZONTALS) {
-            ChunkLoader.UnloadChunk(last_position.pos.offset(direction, 16), last_position.world);
+        if(last_position != null) {
+	        ChunkLoader.UnloadChunk(last_position.pos, last_position.world);
+	        for (EnumFacing direction : EnumFacing.HORIZONTALS) {
+		        ChunkLoader.UnloadChunk(last_position.pos.offset(direction, 16), last_position.world);
+	        }
+	        m_turtles.remove(turtle);
         }
-        m_turtles.remove(turtle);
     }
 
     public static Map<ITurtleAccess, Pos> m_turtles = new HashMap<>();
@@ -256,7 +258,7 @@ class WorldTicket implements Serializable
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException
     {
-        Map<ChunkPosWrapper, Integer> new_chunks = new HashMap<ChunkPosWrapper, Integer>();
+        Map<ChunkPosWrapper, Integer> new_chunks = new HashMap<>();
         for(Map.Entry<ChunkPos, Integer> a : Chunks.entrySet())
         {
             new_chunks.put(new ChunkPosWrapper(a.getKey()), a.getValue());
@@ -288,7 +290,7 @@ class ChunkLoader implements ForgeChunkManager.LoadingCallback
         //ComputerCraftChunkLoader.logger.info("pre-ref count for chunk {}", world.Chunks.get(chunk_pos));
         if (world.Chunks.get(chunk_pos) == 0)
         {
-            ComputerCraftChunkLoader.logger.info("loading chunk {}", chunk_pos);
+            ComputerCraftChunkLoader.logger.info("loading chunk {} in {}", chunk_pos, dim.provider.getDimension());
             ForgeChunkManager.forceChunk(world.ticket, chunk_pos);
         }
         world.Chunks.put(chunk_pos, world.Chunks.get(chunk_pos)+1);
@@ -307,7 +309,7 @@ class ChunkLoader implements ForgeChunkManager.LoadingCallback
         world.Chunks.put(chunk_pos, world.Chunks.get(chunk_pos)-1);
         if (world.Chunks.get(chunk_pos) <= 0)
         {
-            ComputerCraftChunkLoader.logger.info("unloading chunk {}", chunk_pos);
+            ComputerCraftChunkLoader.logger.info("unloading chunk {} in {}", chunk_pos, dim.provider.getDimension());
             ForgeChunkManager.unforceChunk(world.ticket, chunk_pos);
             world.Chunks.put(chunk_pos, 0);
         }
