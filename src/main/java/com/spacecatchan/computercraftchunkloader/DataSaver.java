@@ -1,16 +1,20 @@
 package com.spacecatchan.computercraftchunkloader;
 
 import dan200.computercraft.api.turtle.ITurtleAccess;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-import net.minecraft.world.storage.MapStorage;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.storage.DimensionSavedDataManager;
 import net.minecraft.world.storage.WorldSavedData;
-import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
 import java.io.*;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class DataSaver extends WorldSavedData {
     private static final String NAME = ComputerCraftChunkLoader.MODID + "_data";
@@ -26,12 +30,22 @@ public class DataSaver extends WorldSavedData {
 
     public static void writeWorld(World to_write, ObjectOutputStream out) throws IOException
     {
-        out.writeObject(to_write.provider.getDimension());
+        out.writeObject(to_write.getDimensionKey().getLocation().getPath());
     }
 
     public static World readWorld(ObjectInputStream in) throws IOException, ClassNotFoundException
     {
-        return DimensionManager.getWorld((int)in.readObject());
+        Set<RegistryKey<World>> worlds = ServerLifecycleHooks.getCurrentServer().func_240770_D_();
+        ResourceLocation mine = new ResourceLocation((String)in.readObject());
+        for (RegistryKey<World> key : worlds)
+        {
+            if(key.getLocation().equals(mine))
+            {
+                return ServerLifecycleHooks.getCurrentServer().getWorld(key);
+            }
+        }
+        //shouldn't be reached, if it is reached we are fucked
+        return ServerLifecycleHooks.getCurrentServer().getWorld((RegistryKey<World>)worlds.toArray()[0]);
     }
 
     public static void writeTurtles(ObjectOutputStream out) throws IOException
@@ -48,27 +62,27 @@ public class DataSaver extends WorldSavedData {
         }
     }
 
-    public static DataSaver get(World world)
+    public static DataSaver get(ServerWorld world)
     {
-        MapStorage storage = world.getMapStorage();
-        DataSaver saver = (DataSaver)storage.getOrLoadData(DataSaver.class, NAME);
+        DimensionSavedDataManager storage = world.getSavedData();
+        DataSaver saver = (DataSaver)storage.getOrCreate(()->{ return new DataSaver();}, NAME);
         if(saver == null)
         {
             saver = new DataSaver(NAME);
-            storage.setData(NAME, saver);
+            storage.set(saver);
             saver.markDirty();
         }
         return saver;
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound nbt)
+    public void read(CompoundNBT nbt)
     {
         byte[] value = nbt.getByteArray("data");
         try {
             ObjectInputStream input = new ObjectInputStream(new ByteArrayInputStream(value));
             readTurtles(input);
-            ChunkLoader.m_loaded_state = (Map<Integer, WorldTicket>) input.readObject();
+            ChunkLoader.m_loaded_state = (Map<String, WorldTicket>) input.readObject();
             input.close();
         }
         catch (IOException | ClassNotFoundException e)
@@ -78,7 +92,7 @@ public class DataSaver extends WorldSavedData {
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound nbt)
+    public CompoundNBT write(CompoundNBT nbt)
     {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = null;
@@ -90,7 +104,7 @@ public class DataSaver extends WorldSavedData {
         } catch (IOException e) {
             ComputerCraftChunkLoader.logger.error(e.toString());
         }
-        nbt.setByteArray("data", baos.toByteArray());
+        nbt.putByteArray("data", baos.toByteArray());
         return nbt;
     }
 }
